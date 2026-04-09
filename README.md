@@ -20,10 +20,12 @@ npm run dev
 Create a `.env` file in the project root with:
 
 ```bash
-VITE_OPENAI_API_KEY=your_openai_api_key_here
+OPENAI_API_KEY=your_openai_api_key_here
 ```
 
 Then restart the dev server.
+
+The app now calls OpenAI through a local server endpoint (`/api/generate-rom`), so the key is not exposed to browser code.
 
 ## ROM generation flow
 

@@ -222,66 +222,31 @@ export default function MorganRomRequestForm() {
   }, [project.salesRep, project.clientId]);
 
   const generateRomNarrative = async () => {
-    const apiKey = import.meta.env.VITE_OPENAI_API_KEY as string | undefined;
-
-    if (!apiKey) {
-      setGenerationError('Missing API key. Add VITE_OPENAI_API_KEY to your .env file.');
-      return;
-    }
-
     setGeneratingRom(true);
     setGenerationError('');
 
     try {
-      const response = await fetch('https://api.openai.com/v1/responses', {
+      const response = await fetch('/api/generate-rom', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          model: 'gpt-4.1-mini',
-          temperature: 0.2,
-          input: [
-            {
-              role: 'system',
-              content: [
-                {
-                  type: 'input_text',
-                  text:
-                    'You are a Morgan Sound estimating writer. Create a concise ROM narrative summary. If any input is missing, explicitly state assumptions for missing information. Return clean plain text with section headings and short bullet points suitable for direct PDF export.',
-                },
-              ],
-            },
-            {
-              role: 'user',
-              content: [
-                {
-                  type: 'input_text',
-                  text: JSON.stringify(
-                    {
-                      documentNumber,
-                      riskStatus: riskStatus.label,
-                      missingRequired: missingRequired.map(([label]) => label),
-                      completion,
-                      project,
-                    },
-                    null,
-                    2,
-                  ),
-                },
-              ],
-            },
-          ],
+          documentNumber,
+          riskStatus: riskStatus.label,
+          missingRequired: missingRequired.map(([label]) => label),
+          completion,
+          project,
         }),
       });
 
       if (!response.ok) {
-        throw new Error(`OpenAI request failed (${response.status})`);
+        const errorPayload = (await response.json().catch(() => ({}))) as { error?: string };
+        throw new Error(errorPayload.error || `ROM generation failed (${response.status})`);
       }
 
-      const data: any = await response.json();
-      const output = (data.output_text as string | undefined)?.trim();
+      const data = (await response.json()) as { output?: string };
+      const output = data.output?.trim();
 
       if (!output) {
         throw new Error('No output text returned from model.');
