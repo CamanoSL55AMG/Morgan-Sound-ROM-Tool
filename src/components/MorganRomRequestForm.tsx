@@ -17,6 +17,7 @@ type ProjectState = {
   romRequestedBy: string;
   projectName: string;
   client: string;
+  clientId: string;
   siteAddress: string;
   salesRep: string;
   contactName: string;
@@ -38,7 +39,6 @@ type ProjectState = {
   salesApprovalDate: string;
   estimatingApprovalName: string;
   estimatingApprovalDate: string;
-  documentNumber: string;
   riskFlags: string;
   notes: string;
 };
@@ -103,6 +103,7 @@ const initialProjectState: ProjectState = {
   romRequestedBy: '',
   projectName: '',
   client: '',
+  clientId: '',
   siteAddress: '',
   salesRep: '',
   contactName: '',
@@ -124,7 +125,6 @@ const initialProjectState: ProjectState = {
   salesApprovalDate: '',
   estimatingApprovalName: '',
   estimatingApprovalDate: '',
-  documentNumber: '',
   riskFlags: '',
   notes: '',
 };
@@ -151,6 +151,9 @@ export default function MorganRomRequestForm() {
   const [activeTab, setActiveTab] = useState<TabKey>('project');
   const [project, setProject] = useState<ProjectState>(initialProjectState);
   const [checks, setChecks] = useState<Record<string, boolean>>(createInitialChecks);
+  const [generatedRom, setGeneratedRom] = useState('');
+  const [generatingRom, setGeneratingRom] = useState(false);
+  const [generationError, setGenerationError] = useState('');
 
   const completion = useMemo(() => {
     const total = Object.keys(checks).length;
@@ -168,6 +171,7 @@ export default function MorganRomRequestForm() {
         ['ROM Requested By', project.romRequestedBy],
         ['Project Name', project.projectName],
         ['Client / End User', project.client],
+        ['Client ID', project.clientId],
         ['Site Address', project.siteAddress],
         ['Sales Rep', project.salesRep],
         ['Primary Contact', primaryContactValue],
@@ -206,6 +210,91 @@ export default function MorganRomRequestForm() {
 
   const riskToneClass =
     riskStatus.label === 'Green' ? 'risk-green' : riskStatus.label === 'Yellow' ? 'risk-yellow' : 'risk-red';
+
+  const documentNumber = useMemo(() => {
+    const now = new Date();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const year = String(now.getFullYear()).slice(-2);
+    const repCode = (project.salesRep || 'NA').replace(/[^a-z0-9]/gi, '').toUpperCase().slice(0, 8) || 'NA';
+    const clientCode = (project.clientId || 'NA').replace(/[^a-z0-9]/gi, '').toUpperCase().slice(0, 10) || 'NA';
+    return `MS-ROM-${month}${day}${year}-001-${repCode}-${clientCode}`;
+  }, [project.salesRep, project.clientId]);
+
+  const generateRomNarrative = async () => {
+    const apiKey = import.meta.env.VITE_OPENAI_API_KEY as string | undefined;
+
+    if (!apiKey) {
+      setGenerationError('Missing API key. Add VITE_OPENAI_API_KEY to your .env file.');
+      return;
+    }
+
+    setGeneratingRom(true);
+    setGenerationError('');
+
+    try {
+      const response = await fetch('https://api.openai.com/v1/responses', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: 'gpt-4.1-mini',
+          temperature: 0.2,
+          input: [
+            {
+              role: 'system',
+              content: [
+                {
+                  type: 'input_text',
+                  text:
+                    'You are a Morgan Sound estimating writer. Create a concise ROM narrative summary. If any input is missing, explicitly state assumptions for missing information. Return clean plain text with section headings and short bullet points suitable for direct PDF export.',
+                },
+              ],
+            },
+            {
+              role: 'user',
+              content: [
+                {
+                  type: 'input_text',
+                  text: JSON.stringify(
+                    {
+                      documentNumber,
+                      riskStatus: riskStatus.label,
+                      missingRequired: missingRequired.map(([label]) => label),
+                      completion,
+                      project,
+                    },
+                    null,
+                    2,
+                  ),
+                },
+              ],
+            },
+          ],
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`OpenAI request failed (${response.status})`);
+      }
+
+      const data: any = await response.json();
+      const output = (data.output_text as string | undefined)?.trim();
+
+      if (!output) {
+        throw new Error('No output text returned from model.');
+      }
+
+      setGeneratedRom(output);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Generation failed.';
+      setGenerationError(message);
+    } finally {
+      setGeneratingRom(false);
+    }
+  };
 
   const updateProject = (key: keyof ProjectState, value: string) => {
     setProject((prev) => ({ ...prev, [key]: value }));
@@ -250,15 +339,6 @@ export default function MorganRomRequestForm() {
   };
 
   const exportPDF = () => {
-    if (missingRequired.length) {
-      alert(
-        `Please complete all required fields before exporting:\n\n${missingRequired
-          .map(([label]) => `• ${label}`)
-          .join('\n')}`,
-      );
-      return;
-    }
-
     const doc = new jsPDF({ unit: 'pt', format: 'letter' });
     const left = 40;
     const pageWidth = 612;
@@ -279,7 +359,7 @@ export default function MorganRomRequestForm() {
           left + 12,
           y + 32,
         );
-        doc.text(project.documentNumber ? `Doc No: ${project.documentNumber}` : 'Doc No: Pending', right - 120, y + 18);
+        doc.text(`Doc No: ${documentNumber}`, right - 200, y + 18);
         doc.text(new Date().toLocaleDateString(), right - 120, y + 32);
         y += 60;
       } else {
@@ -321,9 +401,21 @@ export default function MorganRomRequestForm() {
     doc.text(`Risk Status: ${riskStatus.label} - ${riskStatus.description}`, left, y);
     y += 22;
 
+    if (missingRequired.length) {
+      addWrappedText(
+        'Assumptions Applied for Missing Inputs',
+        `Generated with explicit assumptions for: ${missingRequired.map(([label]) => label).join(', ')}`,
+      );
+    }
+
+    if (generatedRom.trim()) {
+      addWrappedText('Narrative ROM Summary', generatedRom, 14);
+    }
+
     addWrappedText('ROM Requested By', project.romRequestedBy);
     addWrappedText('Project Name', project.projectName);
     addWrappedText('Client / End User', project.client);
+    addWrappedText('Client ID', project.clientId);
     addWrappedText('Site Address', project.siteAddress);
     addWrappedText('Sales Rep', project.salesRep);
     addWrappedText('Primary Contact', primaryContactValue);
@@ -347,7 +439,7 @@ export default function MorganRomRequestForm() {
       'Estimating Approval',
       [project.estimatingApprovalName, project.estimatingApprovalDate].filter(Boolean).join(' | '),
     );
-    addWrappedText('Document Number', project.documentNumber);
+    addWrappedText('Document Number', documentNumber);
     addWrappedText('Risk Status', `${riskStatus.label} - ${riskStatus.description}`);
     addWrappedText('Risk Flags', project.riskFlags);
     addWrappedText('Notes', project.notes);
@@ -462,6 +554,7 @@ export default function MorganRomRequestForm() {
               {renderInput('ROM Requested By', 'romRequestedBy', { required: true })}
               {renderInput('Project Name', 'projectName', { required: true })}
               {renderInput('Client / End User', 'client', { required: true })}
+              {renderInput('Client ID', 'clientId', { required: true })}
               {renderInput('Site Address', 'siteAddress', { required: true })}
               {renderInput('Sales Rep', 'salesRep', { required: true })}
               {renderInput('Primary Contact Name', 'contactName', { required: true })}
@@ -507,16 +600,40 @@ export default function MorganRomRequestForm() {
 
         {activeTab === 'review' && (
           <section className="card">
+            <div className="review-tools-row">
+              <div className="info-card doc-number-card">
+                <strong>Doc No</strong>
+                <span>{documentNumber}</span>
+              </div>
+              <button className="primary-button" onClick={generateRomNarrative} disabled={generatingRom}>
+                {generatingRom ? 'Generating...' : 'Generate Narrative ROM'}
+              </button>
+            </div>
+
             <div className={riskStatus.toneClass}>
               <strong>Current ROM status: {riskStatus.label}</strong>
               <span>{riskStatus.description}</span>
             </div>
+
+            {generationError ? (
+              <div className="risk-card risk-red">
+                <strong>Generation error</strong>
+                <span>{generationError}</span>
+              </div>
+            ) : null}
+
+            {generatedRom ? (
+              <article className="generated-rom-card">
+                <h3>Narrative ROM Summary</h3>
+                <pre className="generated-rom-text">{generatedRom}</pre>
+              </article>
+            ) : null}
+
             <div className="notice-card">
               Use this section to prepare the handoff. The customer-facing summary should read like a clean executive snapshot, while risk flags should capture lead time, access, unknown conditions, permitting, labor assumptions, or scope gaps.
             </div>
             <div className="form-grid two-col">
               {renderInput('Internal Reviewer', 'reviewer')}
-              {renderInput('Document Number', 'documentNumber')}
               <div className="span-2">{renderInput('Customer-Facing Summary', 'customerSummary', { textarea: true })}</div>
               <div className="span-2">{renderInput('Risk Flags / Lead-Time Concerns', 'riskFlags', { textarea: true })}</div>
               {renderInput('Sales Approval Name', 'salesApprovalName')}

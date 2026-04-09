@@ -316,6 +316,41 @@ button {
   margin-top: 3px;
 }
 
+.review-tools-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.doc-number-card {
+  min-width: 280px;
+}
+
+.doc-number-card span {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.9rem;
+}
+
+.generated-rom-card {
+  border: 1px solid #dbe3ee;
+  border-radius: 12px;
+  background: #ffffff;
+  padding: 10px 12px;
+}
+
+.generated-rom-card h3 {
+  margin: 0 0 8px;
+}
+
+.generated-rom-text {
+  margin: 0;
+  white-space: pre-wrap;
+  font-family: inherit;
+  font-size: 0.92rem;
+  line-height: 1.4;
+}
+
 @media (max-width: 900px) {
   .form-grid.two-col,
   .tabs {
@@ -337,5 +372,14 @@ button {
 
   .micro-progress {
     grid-column: 1 / -1;
+  }
+
+  .review-tools-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .doc-number-card {
+    min-width: 0;
   }
 }

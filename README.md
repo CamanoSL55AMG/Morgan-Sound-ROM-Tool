@@ -15,6 +15,33 @@ npm install
 npm run dev
 ```
 
+## OpenAI setup (required for narrative ROM generation)
+
+Create a `.env` file in the project root with:
+
+```bash
+VITE_OPENAI_API_KEY=your_openai_api_key_here
+```
+
+Then restart the dev server.
+
+## ROM generation flow
+
+1. Complete intake fields (missing fields are allowed; assumptions will be called out).
+2. Go to the `Review` tab.
+3. Click `Generate Narrative ROM`.
+4. Export PDF from the header button.
+
+### Document Number format
+
+The app auto-generates document numbers in this format:
+
+```text
+MS-ROM-MMDDYY-001-SALESREP-CLIENTID
+```
+
+Sales rep and client ID are sanitized to uppercase alphanumeric tokens.
+
 Then open the local URL Vite prints in the terminal, usually:
 
 ```bash
