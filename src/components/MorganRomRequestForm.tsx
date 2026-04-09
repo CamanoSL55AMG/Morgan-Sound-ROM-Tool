@@ -5,7 +5,6 @@ import {
   CheckCircle2,
   ClipboardList,
   Download,
-  FileText,
   ShieldCheck,
 } from 'lucide-react';
 
@@ -205,6 +204,9 @@ export default function MorganRomRequestForm() {
     };
   }, [completion.percent, criticalMissingCount, missingRequired.length]);
 
+  const riskToneClass =
+    riskStatus.label === 'Green' ? 'risk-green' : riskStatus.label === 'Yellow' ? 'risk-yellow' : 'risk-red';
+
   const updateProject = (key: keyof ProjectState, value: string) => {
     setProject((prev) => ({ ...prev, [key]: value }));
   };
@@ -387,71 +389,47 @@ export default function MorganRomRequestForm() {
     <div className="app-shell">
       <div className="page-wrap">
         <header className="hero-card">
-          <div>
+          <div className="hero-top-row">
             <div className="hero-title-row">
-              <ClipboardList size={28} />
+              <ClipboardList size={26} />
               <h1>Morgan Sound ROM Request Builder</h1>
             </div>
-            <p className="hero-copy">
-              A lean first-phase Morgan Sound ROM intake form with required fields, checklist enforcement,
-              approvals, and PDF export.
-            </p>
-          </div>
-          <div className="hero-grid">
-            <div className="mini-card">
-              <strong>1. ROM Request</strong>
-              <span>Capture the minimum client, site, budget, and objective details needed to open a ROM request.</span>
-            </div>
-            <div className="mini-card">
-              <strong>2. Project Backup</strong>
-              <span>Collect drawings, site-walk status, existing-system verification, and field notes before estimating starts.</span>
-            </div>
-            <div className="mini-card">
-              <strong>3. Internal Review</strong>
-              <span>Document reviewer ownership, risks, and signoffs so the handoff is crisp instead of cloudy.</span>
-            </div>
-          </div>
-        </header>
-
-        <section className="top-grid">
-          <article className="card card-wide">
-            <div className="section-heading">
-              <FileText size={20} />
-              <h2>Workflow Summary</h2>
-            </div>
-            <p className="muted">
-              Use this form to gather the minimum intake information Sales should always capture before a ROM is issued.
-              Required fields are enforced before PDF export.
-            </p>
-          </article>
-
-          <aside className="card progress-card">
-            <div className="section-heading">
-              {riskStatus.label === 'Green' ? <CheckCircle2 size={20} /> : <AlertTriangle size={20} />}
-              <h2>Progress & Risk</h2>
-            </div>
-            <div className="progress-meta">
-              <span>Checklist completion</span>
-              <span>{completion.percent}%</span>
-            </div>
-            <div className="progress-bar">
-              <div className="progress-bar-fill" style={{ width: `${completion.percent}%` }} />
-            </div>
-            <div className={riskStatus.toneClass}>
-              <strong>Traffic-light status: {riskStatus.label}</strong>
-              <span>{riskStatus.description}</span>
-            </div>
-            <div className="info-card">
-              <strong>Missing required fields</strong>
-              <span>
-                {missingRequired.length ? missingRequired.map(([label]) => label).join(', ') : 'None'}
-              </span>
-            </div>
-            <button className="primary-button" onClick={exportPDF}>
+            <button className="primary-button header-export-button" onClick={exportPDF}>
               <Download size={16} />
               Export PDF
             </button>
-          </aside>
+          </div>
+          <p className="hero-copy">
+            A lean first-phase Morgan Sound ROM intake form with required fields, checklist enforcement,
+            approvals, and PDF export.
+          </p>
+        </header>
+
+        <section className="card progress-strip">
+          <div className="micro-item micro-title">
+            {riskStatus.label === 'Green' ? <CheckCircle2 size={20} /> : <AlertTriangle size={20} />}
+            <strong>Progress & Risk</strong>
+          </div>
+
+          <div className="micro-item">
+            <span className="micro-label">Done</span>
+            <strong>{completion.percent}%</strong>
+          </div>
+
+          <div className="micro-progress">
+            <div className="progress-bar">
+              <div className="progress-bar-fill" style={{ width: `${completion.percent}%` }} />
+            </div>
+          </div>
+
+          <div className={`micro-badge ${riskToneClass}`}>
+            <strong>Risk: {riskStatus.label}</strong>
+          </div>
+
+          <div className="micro-item">
+            <span className="micro-label">Missing</span>
+            <strong>{missingRequired.length}</strong>
+          </div>
         </section>
 
         <nav className="tabs">

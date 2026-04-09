@@ -34,9 +34,9 @@ button {
 .page-wrap {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 24px;
+  padding: 14px;
   display: grid;
-  gap: 24px;
+  gap: 14px;
 }
 
 .card,
@@ -45,21 +45,28 @@ button {
 .checklist-card {
   background: #ffffff;
   border: 1px solid #dbe3ee;
-  border-radius: 24px;
-  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
+  border-radius: 16px;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.06);
 }
 
 .hero-card {
-  padding: 24px;
+  padding: 14px;
   display: grid;
-  gap: 18px;
+  gap: 10px;
+}
+
+.hero-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
 }
 
 .hero-title-row,
 .section-heading {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .hero-title-row h1,
@@ -77,28 +84,18 @@ button {
   color: #5b6472;
 }
 
-.hero-grid,
-.top-grid,
 .checklist-grid,
 .form-grid.two-col {
   display: grid;
-  gap: 18px;
-}
-
-.hero-grid {
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-}
-
-.top-grid {
-  grid-template-columns: 2fr 1fr;
+  gap: 12px;
 }
 
 .card {
-  padding: 22px;
+  padding: 14px;
 }
 
 .card-wide {
-  min-height: 160px;
+  min-height: 0;
 }
 
 .mini-card,
@@ -106,29 +103,67 @@ button {
 .info-card,
 .risk-card,
 .check-item {
-  padding: 14px 16px;
-  border-radius: 18px;
+  padding: 10px 12px;
+  border-radius: 12px;
 }
 
 .mini-card {
   display: grid;
-  gap: 6px;
+  gap: 4px;
 }
 
 .progress-card {
   display: grid;
-  gap: 14px;
+  gap: 10px;
+}
+
+.progress-strip {
+  display: grid;
+  grid-template-columns: auto auto 1fr auto auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.micro-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.micro-title {
+  min-width: max-content;
+}
+
+.micro-label {
+  color: #5b6472;
+  font-size: 0.82rem;
+}
+
+.micro-progress {
+  width: 100%;
+}
+
+.micro-badge {
+  padding: 4px 8px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  line-height: 1.1;
+}
+
+.micro-badge strong {
+  font-size: 0.82rem;
 }
 
 .progress-meta {
   display: flex;
   justify-content: space-between;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
 }
 
 .progress-bar {
   width: 100%;
-  height: 12px;
+  height: 6px;
   border-radius: 999px;
   overflow: hidden;
   background: #e5e7eb;
@@ -173,12 +208,12 @@ button {
   border: none;
   background: #0f172a;
   color: white;
-  padding: 14px 18px;
-  border-radius: 18px;
+  padding: 10px 14px;
+  border-radius: 12px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .primary-button:hover {
@@ -188,18 +223,18 @@ button {
 .tabs {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
+  gap: 6px;
   background: #ffffff;
   border: 1px solid #dbe3ee;
-  border-radius: 20px;
-  padding: 8px;
+  border-radius: 14px;
+  padding: 6px;
 }
 
 .tab-button {
   border: none;
   background: transparent;
-  padding: 12px 16px;
-  border-radius: 14px;
+  padding: 9px 12px;
+  border-radius: 10px;
   color: #475569;
 }
 
@@ -211,7 +246,7 @@ button {
 
 .form-grid.one-col {
   display: grid;
-  gap: 18px;
+  gap: 12px;
 }
 
 .form-grid.two-col {
@@ -220,19 +255,20 @@ button {
 
 .field {
   display: grid;
-  gap: 8px;
+  gap: 6px;
 }
 
 .field-label {
   font-weight: 600;
+  font-size: 0.93rem;
   color: #0f172a;
 }
 
 .field-control {
   width: 100%;
   border: 1px solid #cbd5e1;
-  border-radius: 16px;
-  padding: 12px 14px;
+  border-radius: 10px;
+  padding: 9px 11px;
   background: #ffffff;
   color: #111827;
 }
@@ -245,7 +281,7 @@ button {
 }
 
 .textarea {
-  min-height: 130px;
+  min-height: 90px;
   resize: vertical;
 }
 
@@ -255,17 +291,17 @@ button {
 
 .checklist-grid {
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  margin-top: 18px;
+  margin-top: 12px;
 }
 
 .checklist-card {
-  padding: 18px;
+  padding: 12px;
 }
 
 .checklist-items {
   display: grid;
-  gap: 10px;
-  margin-top: 14px;
+  gap: 8px;
+  margin-top: 10px;
 }
 
 .check-item {
@@ -281,9 +317,25 @@ button {
 }
 
 @media (max-width: 900px) {
-  .top-grid,
   .form-grid.two-col,
   .tabs {
     grid-template-columns: 1fr;
+  }
+
+  .hero-top-row {
+    align-items: flex-start;
+  }
+
+  .header-export-button {
+    flex-shrink: 0;
+  }
+
+  .progress-strip {
+    grid-template-columns: 1fr 1fr;
+    align-items: stretch;
+  }
+
+  .micro-progress {
+    grid-column: 1 / -1;
   }
 }
